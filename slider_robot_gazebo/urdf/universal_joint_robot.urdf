@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<robot name="universal_joint_robot">
+  <material name="gray">
+    <color rgba="0.5 0.5 0.5 1.0"/>
+  </material>
+  <material name="blue">
+    <color rgba="0.1 0.25 0.9 1.0"/>
+  </material>
+  <material name="red">
+    <color rgba="0.9 0.05 0.05 1.0"/>
+  </material>
+
+  <link name="world"/>
+
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="3.0"/>
+      <inertia ixx="0.025" ixy="0.0" ixz="0.0"
+               iyy="0.025" iyz="0.0"
+               izz="0.045"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.3 0.3 0.1"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.3 0.3 0.1"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="universal_cross_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.000144" ixy="0.0" ixz="0.0"
+               iyy="0.000144" iyz="0.0"
+               izz="0.000144"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.06"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.06"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="shaft_link">
+    <inertial>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0107291667" ixy="0.0" ixz="0.0"
+               iyy="0.0107291667" iyz="0.0"
+               izz="0.000625"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.5"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.05" length="0.5"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="universal_x_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="universal_cross_link"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.2" upper="1.2" effort="40.0" velocity="1.0"/>
+    <dynamics damping="1.5" friction="0.05"/>
+  </joint>
+
+  <joint name="universal_y_joint" type="revolute">
+    <parent link="universal_cross_link"/>
+    <child link="shaft_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.2" upper="1.2" effort="40.0" velocity="1.0"/>
+    <dynamics damping="1.5" friction="0.05"/>
+  </joint>
+
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <joint name="universal_x_joint">
+      <command_interface name="position">
+        <param name="min">-1.2</param>
+        <param name="max">1.2</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="universal_y_joint">
+      <command_interface name="position">
+        <param name="min">-1.2</param>
+        <param name="max">1.2</param>
+      </command_interface>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+  </ros2_control>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="universal_cross_link">
+    <material>Gazebo/Blue</material>
+    <mu1>0.7</mu1>
+    <mu2>0.7</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="shaft_link">
+    <material>Gazebo/Red</material>
+    <mu1>0.7</mu1>
+    <mu2>0.7</mu2>
+    <kp>1000000.0</kp>
+    <kd>100.0</kd>
+  </gazebo>
+
+  <gazebo reference="universal_x_joint">
+    <implicitSpringDamper>true</implicitSpringDamper>
+    <provideFeedback>true</provideFeedback>
+  </gazebo>
+
+  <gazebo reference="universal_y_joint">
+    <implicitSpringDamper>true</implicitSpringDamper>
+    <provideFeedback>true</provideFeedback>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+      <robot_param>robot_description</robot_param>
+      <robot_param_node>robot_state_publisher</robot_param_node>
+      <parameters>__UNIVERSAL_CONTROLLERS_CONFIG__</parameters>
+    </plugin>
+  </gazebo>
+</robot>

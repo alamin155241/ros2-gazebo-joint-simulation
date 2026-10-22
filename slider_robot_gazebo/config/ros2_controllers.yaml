@@ -1,0 +1,15 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    slider_position_controller:
+      type: forward_command_controller/ForwardCommandController
+
+slider_position_controller:
+  ros__parameters:
+    joints:
+      - slider_joint
+    interface_name: position
